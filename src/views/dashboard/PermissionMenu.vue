@@ -90,7 +90,7 @@ import {
   Folder,
   WarningFilled
 } from '@element-plus/icons-vue';
-import { ElMenu, ElMenuItem, ElSubMenu, ElIcon} from 'element-plus';
+import { ElMenu, ElMenuItem, ElSubMenu, ElIcon, ElMessage} from 'element-plus';
 
 // 接收父组件传入的折叠状态
 const props = defineProps({
@@ -143,8 +143,9 @@ const handleMenuSelect = (index) => {
   // 这里可以根据实际业务逻辑处理菜单点击
   // 示例：根据菜单ID或path导航
   const menu = findMenuById(processedMenus.value, parseInt(index));
+  console.log('点击的菜单:', menu);
   if (menu && menu.menuPath) {
-    router.push(menu.menuPath);
+    router.push(`/${menu.menuPath}`);
   }
 };
 
