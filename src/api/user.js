@@ -20,3 +20,10 @@ export async function personInfo(params) {
 export async function login(params) {
     return post('/api/auth/login',params)
 }
+
+export const getHierarchicalMenusByRoleId = async (roleId) => {
+
+   return get(`/api/sys/role-menu/hierarchical-menus/${roleId}`);
+
+
+};
