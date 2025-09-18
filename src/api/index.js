@@ -32,7 +32,7 @@ apiClient.interceptors.response.use(
                 if(res.code >= 400){
                     ElMessage.warning(res.message)
                 }
-                return res.data;
+                return res;
             }
             return res;
         }

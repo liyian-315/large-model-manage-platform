@@ -2,7 +2,7 @@ import {createRouter, createWebHistory} from 'vue-router'
 import Login from '@/views/login/index.vue'
 import Register from '@/views/register/index.vue'
 import UserManagement from '@/views/enterprise/UserManagement.vue'
-
+import RoleManagement from '@/views/dashboard/RoleManagement.vue'
 const routes = [
     {
         path: '/',
@@ -12,7 +12,12 @@ const routes = [
                 path:'1',
                 component:UserManagement,
                 meta: {title: '企业用户管理'}
-            }
+            },
+            {
+                path:'2',
+                component:RoleManagement,
+                meta: {title: '用户角色管理'}
+            },
         ]
     },
     {path: '/register', component: Register},

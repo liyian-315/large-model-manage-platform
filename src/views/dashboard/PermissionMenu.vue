@@ -147,9 +147,9 @@ const handleMenuSelect = (index) => {
   console.log('点击的菜单:', menu);
 
   // 若菜单有路由路径，跳转到对应的子路由（如/home/1）
-  if (menu && menu.menuPath) {
+  if (menu && menu.id) {
     currentMenu.value = menu;
-    router.push(menu.menuPath); // 路由跳转核心代码
+    router.push(`/${menu.id}`); // 路由跳转核心代码
   }
 };
 
@@ -196,9 +196,9 @@ const loadMenus = async () => {
     const response = await getHierarchicalMenusByRoleId(currentRoleId.value);
     console.log('接口返回的菜单数据:', response);
 
-    if (Array.isArray(response)) {
+    if (Array.isArray(response.data)) {
       // 验证菜单数据结构（新增menuPath校验，确保路由可用）
-      const isValid = response.every(menu =>
+      const isValid = response.data.every(menu =>
           menu.id !== undefined &&
           menu.menuName &&
           typeof menu.isShow === 'number' &&
@@ -206,7 +206,7 @@ const loadMenus = async () => {
       );
 
       if (isValid) {
-        rawMenus.value = response;
+        rawMenus.value = response.data;
         error.value = '';
 
         // 初始化：若当前路由是父路由根路径（/home），默认跳第一个有效菜单

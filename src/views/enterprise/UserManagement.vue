@@ -11,8 +11,8 @@
         <el-form-item label="用户名">
           <el-input v-model="searchForm.username" placeholder="请输入用户名" />
         </el-form-item>
-        <el-form-item label="所属部门">
-          <el-select v-model="searchForm.department" placeholder="请选择部门" style="width: 180px;">
+        <el-form-item label="所属企业">
+          <el-select v-model="searchForm.department" placeholder="请选择企业" style="width: 180px;">
             <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id" />
           </el-select>
         </el-form-item>
@@ -35,8 +35,7 @@
         <el-table-column prop="id" label="用户ID" width="80" />
         <el-table-column prop="username" label="用户名" />
         <el-table-column prop="realName" label="真实姓名" />
-        <el-table-column prop="departmentName" label="所属部门" />
-        <el-table-column prop="position" label="职位" />
+        <el-table-column prop="departmentName" label="所属企业" />
         <el-table-column prop="phone" label="手机号码" />
         <el-table-column prop="email" label="邮箱" />
         <el-table-column prop="status" label="状态" width="100">
@@ -82,13 +81,10 @@
         <el-form-item label="确认密码" v-if="isAddUser" prop="confirmPassword">
           <el-input v-model="formData.confirmPassword" type="password" placeholder="请确认密码" />
         </el-form-item>
-        <el-form-item label="所属部门" prop="departmentId">
-          <el-select v-model="formData.departmentId" placeholder="请选择部门" style="width: 100%;">
+        <el-form-item label="所属企业" prop="departmentId">
+          <el-select v-model="formData.departmentId" placeholder="请选择企业" style="width: 100%;">
             <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id" />
           </el-select>
-        </el-form-item>
-        <el-form-item label="职位" prop="position">
-          <el-input v-model="formData.position" placeholder="请输入职位" />
         </el-form-item>
         <el-form-item label="手机号码" prop="phone">
           <el-input v-model="formData.phone" placeholder="请输入手机号码" />
@@ -197,7 +193,7 @@ const rules = {
     }
   ],
   departmentId: [
-    { required: true, message: '请选择所属部门', trigger: 'change' }
+    { required: true, message: '请选择所属企业', trigger: 'change' }
   ],
   phone: [
     {
@@ -224,7 +220,7 @@ const loadUsers = async () => {
       page: pagination.currentPage,
       pageSize: pagination.pageSize
     };
-    
+
     // 添加搜索条件
     if (searchForm.username) {
       params.username = searchForm.username;
@@ -232,10 +228,10 @@ const loadUsers = async () => {
     if (searchForm.department) {
       params.departmentId = searchForm.department;
     }
-    
+
     // 调用API获取用户列表
     const response = await getUserList(params);
-    
+
     // 假设API返回的格式是 { list: [...], total: ... }
     if (response && Array.isArray(response.list)) {
       usersData.value = response.list;
@@ -243,7 +239,7 @@ const loadUsers = async () => {
     } else {
       // 如果API返回格式不符或失败，使用模拟数据作为fallback
       console.warn('API返回格式不符合预期，使用模拟数据');
-      
+
       // 模拟数据
       const mockData = [
         { id: 1, username: 'admin', realName: '管理员', departmentId: 1, departmentName: '技术部', position: '开发经理', phone: '13800138001', email: 'admin@example.com', status: true, createTime: '2024-01-01 10:00:00' },
@@ -252,7 +248,7 @@ const loadUsers = async () => {
         { id: 4, username: 'product', realName: '王五', departmentId: 2, departmentName: '产品部', position: '产品经理', phone: '13800138004', email: 'wangwu@example.com', status: true, createTime: '2024-01-04 10:00:00' },
         { id: 5, username: 'operation', realName: '赵六', departmentId: 3, departmentName: '运营部', position: '运营专员', phone: '13800138005', email: 'zhaoliu@example.com', status: false, createTime: '2024-01-05 10:00:00' }
       ];
-      
+
       // 应用搜索条件
       let filteredData = [...mockData];
       if (searchForm.username) {
@@ -261,7 +257,7 @@ const loadUsers = async () => {
       if (searchForm.department) {
         filteredData = filteredData.filter(item => item.departmentId === searchForm.department);
       }
-      
+
       // 应用分页
       const startIndex = (pagination.currentPage - 1) * pagination.pageSize;
       const endIndex = startIndex + pagination.pageSize;
@@ -271,7 +267,7 @@ const loadUsers = async () => {
   } catch (error) {
     console.error('获取用户列表失败:', error);
     ElMessage.error('获取用户列表失败');
-    
+
     // 失败时使用模拟数据
     const mockData = [
       { id: 1, username: 'admin', realName: '管理员', departmentId: 1, departmentName: '技术部', position: '开发经理', phone: '13800138001', email: 'admin@example.com', status: true, createTime: '2024-01-01 10:00:00' },
@@ -280,7 +276,7 @@ const loadUsers = async () => {
       { id: 4, username: 'product', realName: '王五', departmentId: 2, departmentName: '产品部', position: '产品经理', phone: '13800138004', email: 'wangwu@example.com', status: true, createTime: '2024-01-04 10:00:00' },
       { id: 5, username: 'operation', realName: '赵六', departmentId: 3, departmentName: '运营部', position: '运营专员', phone: '13800138005', email: 'zhaoliu@example.com', status: false, createTime: '2024-01-05 10:00:00' }
     ];
-    
+
     usersData.value = mockData;
     pagination.total = mockData.length;
   } finally {
@@ -367,10 +363,10 @@ const handleDeleteUser = async (row) => {
         type: 'warning'
       }
     );
-    
+
     // 调用API删除用户
     await deleteUser(row.id);
-    
+
     ElMessage.success('删除成功');
     loadUsers(); // 重新加载数据
   } catch (error) {
@@ -386,7 +382,7 @@ const handleStatusChange = async (row) => {
   try {
     // 调用API更新用户状态
     await updateUserStatus(row.id, { status: row.status ? 1 : 0 });
-    
+
     ElMessage.success(`用户「${row.realName}」状态已更新`);
   } catch (error) {
     row.status = !row.status; // 回滚状态
@@ -399,13 +395,13 @@ const handleStatusChange = async (row) => {
 const handleSubmit = async () => {
   try {
     await userFormRef.value?.validate();
-    
+
     // 准备表单数据
     const userData = {
       ...formData,
       status: formData.status ? 1 : 0 // 转换为数字状态
     };
-    
+
     // 根据是否是新增用户调用不同的API
     if (isAddUser.value) {
       // 新增用户
@@ -414,7 +410,7 @@ const handleSubmit = async () => {
       // 编辑用户
       await updateUser(userData);
     }
-    
+
     dialogVisible.value = false;
     ElMessage.success(isAddUser.value ? '新增成功' : '编辑成功');
     loadUsers(); // 重新加载数据
