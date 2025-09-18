@@ -81,55 +81,20 @@
       </el-menu>
     </div>
 
-    <!-- 右侧内容区域 -->
+    <!-- 右侧内容区域：子路由容器（嵌套路由核心，渲染子路由组件） -->
     <div class="content-container flex-1 overflow-auto bg-slate-50">
-      <div v-if="loadingContent" class="flex h-full justify-center items-center">
-        <el-loading-spinner class="mr-2"></el-loading-spinner>
-        <span class="text-gray-600">加载内容中...</span>
-      </div>
-
-      <div v-else-if="contentError" class="flex h-full justify-center items-center text-danger">
-        <el-icon class="mr-2"><WarningFilled /></el-icon>
-        <span>{{ contentError }}</span>
-      </div>
-
-      <div v-else class="p-6">
-        <!-- 动态组件渲染 -->
-        <component
-            :is="currentComponent"
-            :key="currentComponentKey"
-        ></component>
-      </div>
+      <router-view />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router'; // 路由核心API
 import { getHierarchicalMenusByRoleId } from '@/api/user';
-import {
-  Menu,
-  Document,
-  Folder,
-  WarningFilled
-} from '@element-plus/icons-vue';
+import { Menu, Document, Folder, WarningFilled } from '@element-plus/icons-vue';
 
-// 导入页面组件
-import UserManagement from '@/views/enterprise/UserManagement.vue';
-// 可以在这里导入更多组件
-// import Dashboard from '@/views/Dashboard.vue';
-// import Settings from '@/views/Settings.vue';
-
-// 路径与组件的映射表
-const pathComponentMap = {
-  // 路径1对应UserManagement组件
-  '1': UserManagement,
-  // 可以添加更多路径映射
-  // 'dashboard': Dashboard,
-  // 'system-settings': Settings
-};
-
-// 接收父组件传入的折叠状态
+// 1. 接收父组件传入的折叠状态（保持原有逻辑）
 const props = defineProps({
   isCollapsed: {
     type: Boolean,
@@ -137,86 +102,58 @@ const props = defineProps({
   }
 });
 
-// 状态管理
+// 2. 路由实例初始化（嵌套路由核心依赖）
+const router = useRouter();
+const route = useRoute();
+
+// 3. 状态管理（删除原动态组件相关状态：currentComponent、loadingContent等）
 const loading = ref(true);
 const error = ref('');
 const rawMenus = ref([]);
+const currentMenu = ref(null); // 仅用于临时存储当前点击菜单
+const currentRoleId = ref(1); // 测试用角色ID，实际项目需替换为用户真实角色ID
 
-// 内容区域状态
-const currentMenu = ref(null);
-const currentComponent = ref(null);
-const currentComponentKey = ref(0);
-const loadingContent = ref(false);
-const contentError = ref('');
-
-// 当前激活的菜单
-const activeMenu = computed(() => {
-  if (currentMenu.value) {
-    return currentMenu.value.id.toString();
-  }
-  return '';
-});
-
-// 测试用角色ID
-const currentRoleId = ref(1);
-
-// 处理菜单数据
+// 4. 处理菜单数据（保持过滤、排序、递归逻辑，新增menuPath校验）
 const processedMenus = computed(() => {
   if (!Array.isArray(rawMenus.value)) return [];
 
   // 深拷贝避免修改原始数据
   const menus = JSON.parse(JSON.stringify(rawMenus.value));
 
-  // 递归过滤和排序
+  // 递归过滤（显示状态）、排序（排序号）、补全子菜单
   const filterAndSort = (menuList) => {
     return menuList
-        .filter(menu => menu.isShow === 1) // 只显示需要展示的菜单
-        .sort((a, b) => (a.sort || 0) - (b.sort || 0)) // 按排序号排序
+        .filter(menu => menu.isShow === 1 && menu.menuPath) // 新增menuPath校验（避免无路由的无效菜单）
+        .sort((a, b) => (a.sort || 0) - (b.sort || 0))
         .map(menu => ({
           ...menu,
-          childMenu: filterAndSort(menu.childMenu || []) // 处理子菜单
+          childMenu: filterAndSort(menu.childMenu || [])
         }));
   };
 
   return filterAndSort(menus);
 });
 
-// 菜单选择事件处理
+// 5. 核心：菜单激活状态（与当前子路由路径同步）
+const activeMenu = computed(() => {
+  // 根据当前路由全路径（如/home/1）查找对应的菜单ID
+  const matchedMenu = findMenuByPath(processedMenus.value, route.fullPath);
+  return matchedMenu ? matchedMenu.id.toString() : '';
+});
+
+// 6. 菜单选择事件（替换原动态组件逻辑，改为路由跳转）
 const handleMenuSelect = (index) => {
   const menu = findMenuById(processedMenus.value, parseInt(index));
   console.log('点击的菜单:', menu);
 
+  // 若菜单有路由路径，跳转到对应的子路由（如/home/1）
   if (menu && menu.menuPath) {
     currentMenu.value = menu;
-    loadComponent(menu.menuPath);
+    router.push(menu.menuPath); // 路由跳转核心代码
   }
 };
 
-// 加载对应的组件
-const loadComponent = (path) => {
-  try {
-    loadingContent.value = true;
-    contentError.value = '';
-
-    // 从映射表中获取对应的组件
-    if (pathComponentMap[path]) {
-      currentComponent.value = pathComponentMap[path];
-      currentComponentKey.value++; // 强制重新渲染组件
-    } else {
-      contentError.value = `未找到路径为 ${path} 的对应组件`;
-      console.error(`路径 ${path} 没有对应的组件映射`);
-      currentComponent.value = null;
-    }
-  } catch (err) {
-    contentError.value = `加载组件失败: ${err.message}`;
-    console.error('加载组件出错:', err);
-    currentComponent.value = null;
-  } finally {
-    loadingContent.value = false;
-  }
-};
-
-// 根据ID查找菜单
+// 7. 辅助方法：根据ID查找菜单（递归）
 const findMenuById = (menus, id) => {
   for (const menu of menus) {
     if (menu.id === id) {
@@ -230,7 +167,23 @@ const findMenuById = (menus, id) => {
   return null;
 };
 
-// 加载菜单数据
+// 8. 辅助方法：根据路由路径查找菜单（用于激活状态同步）
+const findMenuByPath = (menus, targetPath) => {
+  for (const menu of menus) {
+    // 匹配菜单的路由路径与当前路由路径（如/home/1）
+    if (menu.menuPath === targetPath) {
+      return menu;
+    }
+    // 递归查找子菜单
+    if (menu.childMenu && menu.childMenu.length) {
+      const found = findMenuByPath(menu.childMenu, targetPath);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+// 9. 加载菜单数据（新增路由初始化逻辑：默认跳第一个有效菜单）
 const loadMenus = async () => {
   if (!currentRoleId.value) {
     error.value = '未获取到用户角色ID';
@@ -244,24 +197,27 @@ const loadMenus = async () => {
     console.log('接口返回的菜单数据:', response);
 
     if (Array.isArray(response)) {
-      // 验证菜单数据结构
+      // 验证菜单数据结构（新增menuPath校验，确保路由可用）
       const isValid = response.every(menu =>
-          menu.id !== undefined && menu.menuName && typeof menu.isShow === 'number'
+          menu.id !== undefined &&
+          menu.menuName &&
+          typeof menu.isShow === 'number' &&
+          menu.menuPath // 必须包含路由路径
       );
 
       if (isValid) {
         rawMenus.value = response;
         error.value = '';
 
-        // 默认加载第一个菜单
-        if (processedMenus.value.length > 0) {
+        // 初始化：若当前路由是父路由根路径（/home），默认跳第一个有效菜单
+        if (processedMenus.value.length > 0 && route.fullPath === '/home') {
           const firstMenu = getFirstValidMenu(processedMenus.value);
-          if (firstMenu) {
-            handleMenuSelect(firstMenu.id.toString());
+          if (firstMenu && firstMenu.menuPath) {
+            router.push(firstMenu.menuPath);
           }
         }
       } else {
-        error.value = '菜单数据结构不完整';
+        error.value = '菜单数据结构不完整（缺少id/menuName/isShow/menuPath）';
         console.error('菜单数据验证失败:', response);
       }
     } else {
@@ -276,19 +232,31 @@ const loadMenus = async () => {
   }
 };
 
-// 获取第一个可点击的菜单
+// 10. 辅助方法：获取第一个可点击的菜单（用于初始化跳转）
 const getFirstValidMenu = (menus) => {
   for (const menu of menus) {
+    // 优先选择无子菜单的菜单（叶子节点，有明确路由）
     if (!menu.childMenu || menu.childMenu.length === 0) {
       return menu;
     }
+    // 递归查找子菜单的第一个叶子节点
     const firstChild = getFirstValidMenu(menu.childMenu);
     if (firstChild) return firstChild;
   }
   return null;
 };
 
-// 组件挂载时加载菜单
+// 11. 监听路由变化：同步菜单激活状态（路由回退/前进时生效）
+watch(
+    () => route.fullPath,
+    (newPath) => {
+      // 路由变化时，通过findMenuByPath更新currentMenu，进而同步activeMenu
+      currentMenu.value = findMenuByPath(processedMenus.value, newPath) || null;
+    },
+    { immediate: true } // 初始渲染时立即执行
+);
+
+// 12. 组件挂载时加载菜单
 onMounted(() => {
   loadMenus();
 });

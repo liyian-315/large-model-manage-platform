@@ -4,9 +4,18 @@ import Register from '@/views/register/index.vue'
 import UserManagement from '@/views/enterprise/UserManagement.vue'
 
 const routes = [
-    {path: '/', component: () => import("@/views/dashboard/PermissionMenu.vue")},
+    {
+        path: '/',
+        component: () => import("@/views/dashboard/PermissionMenu.vue"),
+        children:[
+            {
+                path:'1',
+                component:UserManagement,
+                meta: {title: '企业用户管理'}
+            }
+        ]
+    },
     {path: '/register', component: Register},
-    {path: '/1', component: UserManagement, meta: {title: '企业用户管理'}}
 ]
 
 export default createRouter({
