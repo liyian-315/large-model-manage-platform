@@ -477,6 +477,8 @@ onMounted(() => {
 <style scoped>
 .ai-server-management-container {
   padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
 }
 
 .operation-buttons {
