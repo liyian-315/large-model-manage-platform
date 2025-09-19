@@ -18,7 +18,7 @@ export async function personInfo(params) {
 }
 
 export async function login(params) {
-    return post('/api/auth/login',params)
+    return post('/api/sys/user/login',params)
 }
 
 export const getHierarchicalMenusByRoleId = async (roleId) => {

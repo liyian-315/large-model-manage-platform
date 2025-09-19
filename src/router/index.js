@@ -1,11 +1,18 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import Login from '@/views/login/index.vue'
 import Register from '@/views/register/index.vue'
-import UserManagement from '@/views/enterprise/UserManagement.vue'
+import UserManagement from '@/views/dashboard/UserManagement.vue'
 import RoleManagement from '@/views/dashboard/RoleManagement.vue'
+import EnterpriseUserManagement from "@/views/enterprise/EnterpriseUserManagement.vue";
 const routes = [
+    // 1. 根路径默认重定向到登录页
+    { path: '/', redirect: '/login' },
+    // 2. 登录页（无需登录）
+    { path: '/login', component: Login, meta: { requireAuth: false } },
+    // 3. 注册页（无需登录）
+    { path: '/register', component: Register, meta: { requireAuth: false } },
     {
-        path: '/',
+        path: '/system-admin',
         component: () => import("@/views/dashboard/PermissionMenu.vue"),
         children:[
             {
@@ -20,7 +27,19 @@ const routes = [
             },
         ]
     },
-    {path: '/register', component: Register},
+    {
+        path: '/enterprise-admin',
+        component: () => import("@/views/dashboard/PermissionMenu.vue"),
+        children:[
+            {
+                path:'1',
+                component:EnterpriseUserManagement,
+                meta: {title: '企业业务操作员管理'}
+            }
+        ]
+    }
+
+
 ]
 
 export default createRouter({

@@ -122,7 +122,7 @@ import {
   updateUser,
   deleteUser,
   updateUserStatus
-} from '@/api/user';
+} from '@/api/user.js';
 
 // 模拟数据
 const departments = [

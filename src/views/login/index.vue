@@ -75,18 +75,20 @@ async function submitForm() {
   try {
     await formRef.value.validate()
     const response = await login(form.value)
-
-    if (response && response.token) {
-      const { token, username, role } = response;
+    console.log(response)
+    if (response.data && response.data.token) {
+      const { token, username, roleName, roleId} = response.data;
+      console.log("当前登录用户角色是，role:", roleName);
       localStorage.setItem('token', token.trim());
       localStorage.setItem('username', (username || '').trim());
-      localStorage.setItem('role', (role || '').trim());
-
+      localStorage.setItem('roleName', (roleName || '').trim());
+      localStorage.setItem('roleId', (roleId || '').trim());
       ElMessage.success('登录成功');
       if (window.updateLoginStatus) {
         window.updateLoginStatus()
       }
-      const redirect = route.query.redirect || '/';
+      const redirect = route.query.redirect || `/${roleName}`;
+      console.log("aaaaaaaaaaa");
       await router.push(redirect);
     } else {
       console.error('登录失败：未获取到有效 Token');
