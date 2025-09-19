@@ -9,11 +9,25 @@
     <div class="search-form">
       <el-form :model="searchForm" inline>
         <el-form-item label="用户名">
-          <el-input v-model="searchForm.username" placeholder="请输入用户名" />
+          <el-input v-model="searchForm.username" placeholder="请输入用户名"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="searchForm.email" placeholder="请输入邮箱"></el-input>
+        </el-form-item>
+        <el-form-item label="用户状态">
+          <el-select v-model="searchForm.userStatus" placeholder="请选择状态">
+            <el-option label="启用" value="1"></el-option>
+            <el-option label="禁用" value="0"></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="所属企业">
-          <el-select v-model="searchForm.department" placeholder="请选择企业" style="width: 180px;">
-            <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id" />
+          <el-select v-model="searchForm.enterpriseId" placeholder="请选择企业" style="width: 180px;">
+            <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="用户角色">
+          <el-select v-model="searchForm.roleId" placeholder="请选择角色">
+            <el-option v-for="role in roleList" :key="role.id" :label="role.roleName" :value="role.id"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -26,28 +40,34 @@
     <!-- 用户列表 -->
     <div class="user-table">
       <el-table
-        v-loading="loading"
-        :data="usersData"
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
+          v-loading="loading"
+          :data="usersData"
+          style="width: 100%"
+          @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection" width="55" />
-        <el-table-column prop="id" label="用户ID" width="80" />
-        <el-table-column prop="username" label="用户名" />
-        <el-table-column prop="realName" label="真实姓名" />
-        <el-table-column prop="departmentName" label="所属企业" />
-        <el-table-column prop="phone" label="手机号码" />
-        <el-table-column prop="email" label="邮箱" />
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column type="selection" width="55"></el-table-column>
+        <el-table-column prop="id" label="用户ID" width="80" align="center"></el-table-column>
+        <el-table-column prop="username" label="用户名" align="center"></el-table-column>
+        <el-table-column prop="realName" label="真实姓名" align="center"></el-table-column>
+        <el-table-column prop="enterpriseName" label="所属企业" align="center"></el-table-column>
+        <el-table-column prop="roleName" label="用户角色" align="center"></el-table-column>
+        <el-table-column prop="phone" label="手机号码" align="center"></el-table-column>
+        <el-table-column prop="email" label="邮箱" align="center"></el-table-column>
+        <el-table-column prop="userStatus" label="状态" width="100" align="center">
           <template #default="scope">
-            <el-switch v-model="scope.row.status" @change="handleStatusChange(scope.row)" />
+            <el-switch
+                v-model="scope.row.userStatus"
+                active-value="1"
+                inactive-value="0"
+                @change="handleStatusChange(scope.row)"
+            ></el-switch>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column prop="createTime" label="创建时间" width="180" align="center"></el-table-column>
+        <el-table-column label="操作" width="180" fixed="right" align="center">
           <template #default="scope">
-            <el-button type="primary" size="small" @click="handleEditUser(scope.row)" :icon="Edit" />
-            <el-button type="danger" size="small" @click="handleDeleteUser(scope.row)" :icon="Delete" />
+            <el-button type="primary" size="small" @click="handleEditUser(scope.row)" :icon="Edit"></el-button>
+            <el-button type="danger" size="small" @click="handleDeleteUser(scope.row)" :icon="Delete"></el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -56,19 +76,19 @@
     <!-- 分页 -->
     <div class="pagination">
       <el-pagination
-        v-model:current-page="pagination.currentPage"
-        v-model:page-size="pagination.pageSize"
-        background
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="pagination.total"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
+          v-model:current-page="pagination.currentPage"
+          v-model:page-size="pagination.pageSize"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="pagination.total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+      ></el-pagination>
     </div>
 
     <!-- 新增/编辑用户对话框 -->
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="700px">
-      <el-form ref="userFormRef" :model="formData" :rules="rules" label-width="120px">
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="700px" draggable>
+      <el-form ref="userFormRef" :model="formData" :rules="rules" label-width="120px" class="user-form">
         <el-form-item label="用户角色" prop="roleId">
           <el-select v-model="formData.roleId" placeholder="请选择用户角色" style="width: 100%;">
             <el-option
@@ -76,34 +96,38 @@
                 :key="role.id"
                 :label="role.roleName"
                 :value="role.id"
-            />
+            ></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="formData.username" placeholder="请输入用户名" />
+          <el-input v-model="formData.username" placeholder="请输入用户名"></el-input>
         </el-form-item>
         <el-form-item label="真实姓名" prop="realName">
-          <el-input v-model="formData.realName" placeholder="请输入真实姓名" />
+          <el-input v-model="formData.realName" placeholder="请输入真实姓名"></el-input>
         </el-form-item>
         <el-form-item label="密码" v-if="isAddUser" prop="password">
-          <el-input v-model="formData.password" type="password" placeholder="请输入密码" />
+          <el-input v-model="formData.password" type="password" placeholder="请输入密码"></el-input>
         </el-form-item>
         <el-form-item label="确认密码" v-if="isAddUser" prop="confirmPassword">
-          <el-input v-model="formData.confirmPassword" type="password" placeholder="请确认密码" />
+          <el-input v-model="formData.confirmPassword" type="password" placeholder="请确认密码"></el-input>
         </el-form-item>
-        <el-form-item label="所属企业" prop="departmentId">
-          <el-select v-model="formData.departmentId" placeholder="请选择企业" style="width: 100%;">
-            <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id" />
+        <el-form-item label="所属企业" prop="enterpriseId">
+          <el-select v-model="formData.enterpriseId" placeholder="请选择企业" style="width: 100%;">
+            <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="手机号码" prop="phone">
-          <el-input v-model="formData.phone" placeholder="请输入手机号码" />
+          <el-input v-model="formData.phone" placeholder="请输入手机号码"></el-input>
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
-          <el-input v-model="formData.email" placeholder="请输入邮箱" />
+          <el-input v-model="formData.email" placeholder="请输入邮箱"></el-input>
         </el-form-item>
         <el-form-item label="状态">
-          <el-switch v-model="formData.status" />
+          <el-switch
+              v-model="formData.userStatus"
+              active-value="1"
+              inactive-value="0"
+          ></el-switch>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -128,23 +152,16 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   getUserList,
-  createUser,
-  updateUser,
-  deleteUser,
-  updateUserStatus
 } from '@/api/user.js';
 
 import {
-  getRolePage,
-  addRole,
-  updateRole,
-  deleteRole,
-  getRoleById, getAllRoles
+  getAccessibleRoles,
+  getAllRoles
 } from '@/api/role';
 
 // 角色列表
 const roleList = ref([])
-// 模拟数据
+// 企业列表
 const departments = [
   { id: 1, name: '技术部' },
   { id: 2, name: '产品部' },
@@ -158,7 +175,10 @@ const loading = ref(false);
 const usersData = ref([]);
 const searchForm = reactive({
   username: '',
-  department: ''
+  email: '',
+  userStatus: '',
+  enterpriseId: '',
+  roleId: ''
 });
 const pagination = reactive({
   currentPage: 1,
@@ -178,23 +198,19 @@ const formData = reactive({
   realName: '',
   password: '',
   confirmPassword: '',
-  departmentId: '',
-  departmentName: '',
-  position: '',
+  enterpriseId: '',
   phone: '',
   email: '',
-  status: true,
+  userStatus: '1',
   roleId: '',
 });
 
 // 获取角色列表
 const fetchRoles = async () => {
   try {
-
-    const response = await getAllRoles();
-    console.log("角色列表数据",response);
+    const response = await getAccessibleRoles();
     if (response.code === 200) {
-      roleList.value = response.data|| [];
+      roleList.value = response.data || [];
     } else {
       ElMessage.error(response.msg || '获取角色列表失败');
     }
@@ -213,7 +229,6 @@ const rules = {
   realName: [
     { required: true, message: '请输入真实姓名', trigger: 'blur' }
   ],
-  // 新增：角色选择必填
   roleId: [
     { required: true, message: '请选择用户角色', trigger: 'change' }
   ],
@@ -234,7 +249,7 @@ const rules = {
       trigger: 'blur'
     }
   ],
-  departmentId: [
+  enterpriseId: [
     { required: true, message: '请选择所属企业', trigger: 'change' }
   ],
   phone: [
@@ -257,70 +272,34 @@ const rules = {
 const loadUsers = async () => {
   loading.value = true;
   try {
-    // 构建查询参数
     const params = {
-      page: pagination.currentPage,
-      pageSize: pagination.pageSize
+      pageNum: pagination.currentPage,
+      pageSize: pagination.pageSize,
+      username: searchForm.username || undefined,
+      email: searchForm.email || undefined,
+      userStatus: searchForm.userStatus || undefined,
+      roleId: searchForm.roleId || undefined,
+      enterpriseId: searchForm.enterpriseId || undefined
     };
 
-    // 添加搜索条件
-    if (searchForm.username) {
-      params.username = searchForm.username;
-    }
-    if (searchForm.department) {
-      params.departmentId = searchForm.department;
-    }
-
-    // 调用API获取用户列表
     const response = await getUserList(params);
 
-    // 假设API返回的格式是 { list: [...], total: ... }
-    if (response && Array.isArray(response.list)) {
-      usersData.value = response.list;
-      pagination.total = response.total || response.list.length;
+    if (response.code === 200 && response.data) {
+      usersData.value = response.data.records.map(user => ({
+        ...user,
+        userStatus: user.userStatus?.toString() || '0'
+      }));
+      pagination.total = response.data.total || 0;
     } else {
-      // 如果API返回格式不符或失败，使用模拟数据作为fallback
-      console.warn('API返回格式不符合预期，使用模拟数据');
-
-      // 模拟数据
-      const mockData = [
-        { id: 1, username: 'admin', realName: '管理员', departmentId: 1, departmentName: '技术部', position: '开发经理', phone: '13800138001', email: 'admin@example.com', status: true, createTime: '2024-01-01 10:00:00' },
-        { id: 2, username: 'developer1', realName: '张三', departmentId: 1, departmentName: '技术部', position: '前端开发', phone: '13800138002', email: 'zhangsan@example.com', status: true, createTime: '2024-01-02 10:00:00' },
-        { id: 3, username: 'developer2', realName: '李四', departmentId: 1, departmentName: '技术部', position: '后端开发', phone: '13800138003', email: 'lisi@example.com', status: true, createTime: '2024-01-03 10:00:00' },
-        { id: 4, username: 'product', realName: '王五', departmentId: 2, departmentName: '产品部', position: '产品经理', phone: '13800138004', email: 'wangwu@example.com', status: true, createTime: '2024-01-04 10:00:00' },
-        { id: 5, username: 'operation', realName: '赵六', departmentId: 3, departmentName: '运营部', position: '运营专员', phone: '13800138005', email: 'zhaoliu@example.com', status: false, createTime: '2024-01-05 10:00:00' }
-      ];
-
-      // 应用搜索条件
-      let filteredData = [...mockData];
-      if (searchForm.username) {
-        filteredData = filteredData.filter(item => item.username.includes(searchForm.username) || item.realName.includes(searchForm.username));
-      }
-      if (searchForm.department) {
-        filteredData = filteredData.filter(item => item.departmentId === searchForm.department);
-      }
-
-      // 应用分页
-      const startIndex = (pagination.currentPage - 1) * pagination.pageSize;
-      const endIndex = startIndex + pagination.pageSize;
-      usersData.value = filteredData.slice(startIndex, endIndex);
-      pagination.total = filteredData.length;
+      ElMessage.error(response.msg || '获取用户列表失败');
+      usersData.value = [];
+      pagination.total = 0;
     }
   } catch (error) {
     console.error('获取用户列表失败:', error);
-    ElMessage.error('获取用户列表失败');
-
-    // 失败时使用模拟数据
-    const mockData = [
-      { id: 1, username: 'admin', realName: '管理员', departmentId: 1, departmentName: '技术部', position: '开发经理', phone: '13800138001', email: 'admin@example.com', status: true, createTime: '2024-01-01 10:00:00' },
-      { id: 2, username: 'developer1', realName: '张三', departmentId: 1, departmentName: '技术部', position: '前端开发', phone: '13800138002', email: 'zhangsan@example.com', status: true, createTime: '2024-01-02 10:00:00' },
-      { id: 3, username: 'developer2', realName: '李四', departmentId: 1, departmentName: '技术部', position: '后端开发', phone: '13800138003', email: 'lisi@example.com', status: true, createTime: '2024-01-03 10:00:00' },
-      { id: 4, username: 'product', realName: '王五', departmentId: 2, departmentName: '产品部', position: '产品经理', phone: '13800138004', email: 'wangwu@example.com', status: true, createTime: '2024-01-04 10:00:00' },
-      { id: 5, username: 'operation', realName: '赵六', departmentId: 3, departmentName: '运营部', position: '运营专员', phone: '13800138005', email: 'zhaoliu@example.com', status: false, createTime: '2024-01-05 10:00:00' }
-    ];
-
-    usersData.value = mockData;
-    pagination.total = mockData.length;
+    ElMessage.error('获取用户列表异常，请重试');
+    usersData.value = [];
+    pagination.total = 0;
   } finally {
     loading.value = false;
   }
@@ -335,7 +314,10 @@ const handleSearch = () => {
 // 处理重置
 const handleReset = () => {
   searchForm.username = '';
-  searchForm.department = '';
+  searchForm.email = '';
+  searchForm.userStatus = '';
+  searchForm.enterpriseId = '';
+  searchForm.roleId = '';
   pagination.currentPage = 1;
   loadUsers();
 };
@@ -343,6 +325,7 @@ const handleReset = () => {
 // 处理分页大小变化
 const handleSizeChange = (size) => {
   pagination.pageSize = size;
+  pagination.currentPage = 1;
   loadUsers();
 };
 
@@ -361,20 +344,17 @@ const handleSelectionChange = (selection) => {
 const handleAddUser = () => {
   isAddUser.value = true;
   dialogTitle.value = '新增用户';
-  // 重置表单数据
   Object.assign(formData, {
     id: '',
     username: '',
     realName: '',
     password: '',
     confirmPassword: '',
-    departmentId: '',
-    departmentName: '',
-    position: '',
+    enterpriseId: '',
     phone: '',
     email: '',
-    status: true,
-    roleId: '',
+    userStatus: '1',
+    roleId: ''
   });
   dialogVisible.value = true;
   nextTick(() => {
@@ -386,11 +366,17 @@ const handleAddUser = () => {
 const handleEditUser = (row) => {
   isAddUser.value = false;
   dialogTitle.value = '编辑用户';
-  // 复制行数据到表单
   Object.assign(formData, {
-    ...row,
-    confirmPassword: '',
-    roleId:row.roleId || ''
+    id: row.id,
+    username: row.username,
+    realName: row.realName,
+    enterpriseId: row.enterpriseId,
+    phone: row.phone,
+    email: row.email,
+    userStatus: row.userStatus || '1',
+    roleId: row.roleId || '',
+    password: '',
+    confirmPassword: ''
   });
   dialogVisible.value = true;
 };
@@ -399,39 +385,46 @@ const handleEditUser = (row) => {
 const handleDeleteUser = async (row) => {
   try {
     await ElMessageBox.confirm(
-      `确定要删除用户「${row.realName}」吗？`,
-      '删除确认',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+        `确定要删除用户「${row.realName}」吗？`,
+        '删除确认',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
     );
 
-    // 调用API删除用户
-    await deleteUser(row.id);
-
-    ElMessage.success('删除成功');
-    loadUsers(); // 重新加载数据
+    const response = await deleteUser(row.id);
+    if (response.code === 200) {
+      ElMessage.success('删除成功');
+      loadUsers();
+    } else {
+      ElMessage.error(response.msg || '删除失败');
+    }
   } catch (error) {
-    // 用户取消删除操作
     if (error === 'cancel') return;
     console.error('删除用户失败:', error);
-    ElMessage.error('删除失败');
+    ElMessage.error('删除失败，请重试');
   }
 };
 
 // 处理状态变化
 const handleStatusChange = async (row) => {
   try {
-    // 调用API更新用户状态
-    await updateUserStatus(row.id, { status: row.status ? 1 : 0 });
+    const response = await updateUserStatus(row.id, {
+      userStatus: row.userStatus === '1' ? 0 : 1
+    });
 
-    ElMessage.success(`用户「${row.realName}」状态已更新`);
+    if (response.code === 200) {
+      ElMessage.success(`用户「${row.realName}」状态已更新`);
+    } else {
+      row.userStatus = row.userStatus === '1' ? '0' : '1';
+      ElMessage.error(response.msg || '状态更新失败');
+    }
   } catch (error) {
-    row.status = !row.status; // 回滚状态
+    row.userStatus = row.userStatus === '1' ? '0' : '1';
     console.error('更新用户状态失败:', error);
-    ElMessage.error('状态更新失败');
+    ElMessage.error('状态更新失败，请重试');
   }
 };
 
@@ -440,29 +433,35 @@ const handleSubmit = async () => {
   try {
     await userFormRef.value?.validate();
 
-    // 准备表单数据
     const userData = {
-      ...formData,
-      status: formData.status ? 1 : 0 // 转换为数字状态
+      id: formData.id,
+      username: formData.username,
+      realName: formData.realName,
+      enterpriseId: formData.enterpriseId,
+      phone: formData.phone,
+      email: formData.email,
+      userStatus: parseInt(formData.userStatus, 10),
+      roleId: formData.roleId,
+      ...(isAddUser.value && { password: formData.password })
     };
 
-    // 根据是否是新增用户调用不同的API
+    let response;
     if (isAddUser.value) {
-      // 新增用户
-      await createUser(userData);
+      response = await createUser(userData);
     } else {
-      // 编辑用户
-      await updateUser(userData);
+      response = await updateUser(userData);
     }
 
-    dialogVisible.value = false;
-    ElMessage.success(isAddUser.value ? '新增成功' : '编辑成功');
-    loadUsers(); // 重新加载数据
+    if (response.code === 200) {
+      dialogVisible.value = false;
+      ElMessage.success(isAddUser.value ? '新增成功' : '编辑成功');
+      loadUsers();
+    } else {
+      ElMessage.error(response.msg || (isAddUser.value ? '新增失败' : '编辑失败'));
+    }
   } catch (error) {
-    // 表单验证失败或提交出错
-    console.error(isAddUser.value ? '新增用户失败:' : '编辑用户失败:', error);
-    if (error !== 'cancel') {
-      ElMessage.error(isAddUser.value ? '新增失败' : '编辑失败');
+    if (error.name !== 'Error') {
+      console.error(isAddUser.value ? '新增用户失败:' : '编辑用户失败:', error);
     }
   }
 };
@@ -516,5 +515,9 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
+}
+
+.user-form {
+  margin-top: 15px;
 }
 </style>

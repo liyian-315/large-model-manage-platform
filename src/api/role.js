@@ -24,6 +24,10 @@ export function getAllRoles() {
     return get('/api/sys/role/all');
 }
 
+export function getAccessibleRoles() {
+    return get('/api/sys/role/accessible');
+}
+
 export function getRolePage (params)  {
     return get('/api/sys/role/page', params);
 }

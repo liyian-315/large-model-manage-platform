@@ -15,7 +15,7 @@ export const getHierarchicalMenusByRoleId = async (roleId) => {
 
 // 用户管理相关API
 export const getUserList = async (params) => {
-    return get('/api/sys/user/page', params);
+    return post('/api/sys/user/page', params);
 };
 
 // 以下尚未实现
