@@ -97,7 +97,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, getCurrentInstance } from 'vue';
-import { ElMessage, ElMessageBox, ElNotification } from 'element-plus';
+import { ElMessage, ElMessageBox, ElNotification} from 'element-plus';
 import {
   getRolePage,
   addRole,
@@ -340,6 +340,9 @@ onMounted(() => {
 <style scoped>
 .role-management-container {
   padding: 20px;
+  background-color: #f5f7fa;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .operation-buttons {
