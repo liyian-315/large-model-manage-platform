@@ -69,6 +69,16 @@
     <!-- 新增/编辑用户对话框 -->
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="700px">
       <el-form ref="userFormRef" :model="formData" :rules="rules" label-width="120px">
+        <el-form-item label="用户角色" prop="roleId">
+          <el-select v-model="formData.roleId" placeholder="请选择用户角色" style="width: 100%;">
+            <el-option
+                v-for="role in roleList"
+                :key="role.id"
+                :label="role.roleName"
+                :value="role.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="用户名" prop="username">
           <el-input v-model="formData.username" placeholder="请输入用户名" />
         </el-form-item>
@@ -124,6 +134,16 @@ import {
   updateUserStatus
 } from '@/api/user.js';
 
+import {
+  getRolePage,
+  addRole,
+  updateRole,
+  deleteRole,
+  getRoleById, getAllRoles
+} from '@/api/role';
+
+// 角色列表
+const roleList = ref([])
 // 模拟数据
 const departments = [
   { id: 1, name: '技术部' },
@@ -163,8 +183,26 @@ const formData = reactive({
   position: '',
   phone: '',
   email: '',
-  status: true
+  status: true,
+  roleId: '',
 });
+
+// 获取角色列表
+const fetchRoles = async () => {
+  try {
+
+    const response = await getAllRoles();
+    console.log("角色列表数据",response);
+    if (response.code === 200) {
+      roleList.value = response.data|| [];
+    } else {
+      ElMessage.error(response.msg || '获取角色列表失败');
+    }
+  } catch (error) {
+    ElMessage.error('获取角色列表异常，请重试');
+    console.error('获取角色列表错误:', error);
+  }
+};
 
 // 表单验证规则
 const rules = {
@@ -174,6 +212,10 @@ const rules = {
   ],
   realName: [
     { required: true, message: '请输入真实姓名', trigger: 'blur' }
+  ],
+  // 新增：角色选择必填
+  roleId: [
+    { required: true, message: '请选择用户角色', trigger: 'change' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -331,7 +373,8 @@ const handleAddUser = () => {
     position: '',
     phone: '',
     email: '',
-    status: true
+    status: true,
+    roleId: '',
   });
   dialogVisible.value = true;
   nextTick(() => {
@@ -346,7 +389,8 @@ const handleEditUser = (row) => {
   // 复制行数据到表单
   Object.assign(formData, {
     ...row,
-    confirmPassword: ''
+    confirmPassword: '',
+    roleId:row.roleId || ''
   });
   dialogVisible.value = true;
 };
@@ -426,6 +470,7 @@ const handleSubmit = async () => {
 // 组件挂载时加载数据
 onMounted(() => {
   loadUsers();
+  fetchRoles();
 });
 </script>
 

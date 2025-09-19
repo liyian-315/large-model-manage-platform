@@ -16,12 +16,12 @@ const routes = [
         component: () => import("@/views/dashboard/PermissionMenu.vue"),
         children:[
             {
-                path:'1',
+                path:'user',
                 component:UserManagement,
                 meta: {title: '企业用户管理'}
             },
             {
-                path:'2',
+                path:'role',
                 component:RoleManagement,
                 meta: {title: '用户角色管理'}
             },

@@ -82,20 +82,18 @@ async function submitForm() {
       localStorage.setItem('token', token.trim());
       localStorage.setItem('username', (username || '').trim());
       localStorage.setItem('roleName', (roleName || '').trim());
-      localStorage.setItem('roleId', (roleId || '').trim());
+      localStorage.setItem('roleId', (roleId.toString() || '').trim());
       ElMessage.success('登录成功');
       if (window.updateLoginStatus) {
         window.updateLoginStatus()
       }
       const redirect = route.query.redirect || `/${roleName}`;
-      console.log("aaaaaaaaaaa");
       await router.push(redirect);
     } else {
       console.error('登录失败：未获取到有效 Token');
       ElMessage.error('登录失败：未获取到有效信息');
     }
   } catch (error) {
-    if (error.name !== 'Error') return;
     ElMessage.error('登录失败: ' + (error.message || '用户名或密码错误'));
   }
 }

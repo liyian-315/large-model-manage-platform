@@ -15,6 +15,7 @@ apiClient.interceptors.request.use(
         const token = localStorage.getItem('token')
         if (token) {
             config.headers.Authorization = `Bearer ${token}`
+            config.headers.Role = `Bearer ${localStorage.getItem('roleId')}`
         }
         return config
     },

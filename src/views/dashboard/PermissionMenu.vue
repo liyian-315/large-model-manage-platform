@@ -112,8 +112,7 @@ const error = ref('');
 const rawMenus = ref([]);
 const currentMenu = ref(null); // 仅用于临时存储当前点击菜单
 // 从localStorage获取当前登录用户的roleId，转换为数字类型
-//const currentRoleId = ref(Number(localStorage.getItem('roleId') || 0));
-const currentRoleId = ref(1);
+const currentRoleId = ref(Number(localStorage.getItem('roleId') || 0));
 // 4. 处理菜单数据（保持过滤、排序、递归逻辑，新增menuPath校验）
 const processedMenus = computed(() => {
   if (!Array.isArray(rawMenus.value)) return [];
@@ -147,10 +146,10 @@ const handleMenuSelect = (index) => {
   const menu = findMenuById(processedMenus.value, parseInt(index));
   console.log('点击的菜单:', menu);
 
-  // 若菜单有路由路径，跳转到对应的子路由（如/home/1）
-  if (menu && menu.id) {
+  // 若菜单有路由路径，跳转到对应的子路由 这里是根据后端返回的menuPath来找路由，路由需要与数据库设置一致
+  if (menu && menu.menuPath) {
     currentMenu.value = menu;
-    router.push(`/system/${menu.id}`); // 路由跳转核心代码
+    router.push(`${menu.menuPath}`); // 路由跳转核心代码
   }
 };
 
