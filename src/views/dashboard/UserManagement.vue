@@ -160,15 +160,9 @@ import {
 } from '@/api/role';
 
 // 角色列表
-const roleList = ref([])
+const roleList = ref([]);
 // 企业列表
-const departments = [
-  { id: 1, name: '技术部' },
-  { id: 2, name: '产品部' },
-  { id: 3, name: '运营部' },
-  { id: 4, name: '市场部' },
-  { id: 5, name: '财务部' }
-];
+const departments = ref([]);
 
 // 状态管理
 const loading = ref(false);
@@ -220,6 +214,20 @@ const fetchRoles = async () => {
   }
 };
 
+// 获取企业列表
+const fetchEnterprises = async () => {
+  try {
+    const response = await getEnterpriseList();
+    if (response.code === 200) {
+      departments.value = response.data || [];
+    } else {
+      ElMessage.error(response.msg || '获取企业列表失败');
+    }
+  } catch (error) {
+    ElMessage.error('获取企业列表异常，请重试');
+    console.error('获取企业列表错误:', error);
+  }
+};
 // 表单验证规则
 const rules = {
   username: [
@@ -278,8 +286,7 @@ const loadUsers = async () => {
       username: searchForm.username || undefined,
       email: searchForm.email || undefined,
       userStatus: searchForm.userStatus || undefined,
-      roleId: searchForm.roleId || undefined,
-      enterpriseId: searchForm.enterpriseId || undefined
+      roleId: searchForm.roleId || undefined
     };
 
     const response = await getUserList(params);

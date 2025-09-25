@@ -33,7 +33,7 @@ const routes = [
         component: () => import("@/views/dashboard/PermissionMenu.vue"),
         children:[
             {
-                path:'1',
+                path:'user',
                 component:EnterpriseUserManagement,
                 meta: {title: '企业业务操作员管理'}
             },
