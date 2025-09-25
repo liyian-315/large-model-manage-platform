@@ -5,6 +5,7 @@ import UserManagement from '@/views/dashboard/UserManagement.vue'
 import RoleManagement from '@/views/dashboard/RoleManagement.vue'
 import EnterpriseUserManagement from "@/views/enterprise/EnterpriseUserManagement.vue";
 import AIServerManagement from "@/views/enterprise/AIServerManagement.vue";
+import OpenSourceLLMList from "@/views/enterprise/OpenSourceLLMList.vue";
 const routes = [
     // 1. 根路径默认重定向到登录页
     { path: '/', redirect: '/login' },
@@ -40,6 +41,10 @@ const routes = [
             {
                 path: 'server',
                 component: AIServerManagement,
+            },
+            {
+                path: 'opensourceLLMs',
+                component: OpenSourceLLMList,
             }
         ]
     }
